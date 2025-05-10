@@ -1,4 +1,4 @@
-# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
+#Configuração inicial para compatibilidade com a extensão VS Code do Raspberry Pi Pico
 if(WIN32)
     set(USERHOME $ENV{USERPROFILE})
 else()
@@ -11,56 +11,61 @@ set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
 if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
-# ====================================================================================
 
-cmake_minimum_required(VERSION 3.13)  # Padrões
+#Versão mínima do CMake requerida
+cmake_minimum_required(VERSION 3.13)
+
+#Configurações de padrões de linguagem
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Definindo a placa
+#Define o tipo de placa como Raspberry Pi Pico W
 set(PICO_BOARD pico_w CACHE STRING "Board type")
 
-# SDK do Pico
+#Inclui o SDK do Pico
 include(pico_sdk_import.cmake)
 
-# Caminho para o FreeRTOS (corrigido)
+#Configura o FreeRTOS
 set(FREERTOS_KERNEL_PATH "C:/Users/Jonas/FreeRTOS-Kernel")
 include(${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2040/FreeRTOS_Kernel_import.cmake)
 
-# Nome do projeto e executável
+#Define o nome do projeto
 project(wifi_project C CXX ASM)
+
+#Inicializa o SDK do Pico
 pico_sdk_init()
 
-# Diretórios de include do projeto
-include_directories(${CMAKE_SOURCE_DIR}/lib)
-include_directories(${CMAKE_SOURCE_DIR})
-include_directories(${CMAKE_SOURCE_DIR}/lib/wifi)
+#Diretórios de inclusão para headers do projeto
+include_directories(
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/lib
+    ${CMAKE_SOURCE_DIR}/lib/wifi
+)
 
-# Criando o executável
+#Cria o executável com os arquivos fonte
 add_executable(wifi_project
     main.c
     lib/Display_Bibliotecas/ssd1306.c
     lib/Matriz_Bibliotecas/matriz_led.c
     lib/DS18b20/ds18b20.c
-    
 )
 
-# Bibliotecas utilizadas
+#Vincula as bibliotecas necessárias ao executável
 target_link_libraries(wifi_project
-    pico_stdlib
-    hardware_i2c       # <-- driver I²C do pico-sdk
-    FreeRTOS-Kernel
-    FreeRTOS-Kernel-Heap4
-    hardware_pwm
-    hardware_pio
-    pico_cyw43_arch_lwip_threadsafe_background
-    hardware_adc
+    pico_stdlib              #Biblioteca padrão do Pico
+    hardware_i2c             #Driver I2C do Pico SDK
+    hardware_pwm             #Driver PWM do Pico SDK
+    hardware_pio             #Driver PIO do Pico SDK
+    hardware_adc             #Driver ADC do Pico SDK
+    pico_cyw43_arch_lwip_threadsafe_background #Suporte Wi-Fi para Pico W
+    FreeRTOS-Kernel          #Kernel do FreeRTOS
+    FreeRTOS-Kernel-Heap4    #Gerenciador de memória do FreeRTOS
 )
 
-# Habilita I/O padrão via USB (ou UART)
+#Habilita saída padrão via USB e UART
 pico_enable_stdio_usb(wifi_project 1)
 pico_enable_stdio_uart(wifi_project 1)
 
-# Gera arquivos binários/UF2
+#Gera arquivos adicionais (binário, UF2, etc.)
 pico_add_extra_outputs(wifi_project)
