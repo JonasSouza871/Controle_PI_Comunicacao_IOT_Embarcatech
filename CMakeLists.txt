@@ -34,6 +34,7 @@ pico_sdk_init()
 
 # Diretórios de include do projeto
 include_directories(${CMAKE_SOURCE_DIR}/lib)
+include_directories(${CMAKE_SOURCE_DIR})
 
 # Criando o executável
 add_executable(wifi_project
@@ -41,6 +42,7 @@ add_executable(wifi_project
     lib/Display_Bibliotecas/ssd1306.c
     lib/Matriz_Bibliotecas/matriz_led.c
     lib/DS18b20/ds18b20.c
+    
 )
 
 # Bibliotecas utilizadas
@@ -51,6 +53,8 @@ target_link_libraries(wifi_project
     FreeRTOS-Kernel-Heap4
     hardware_pwm
     hardware_pio
+    pico_cyw43_arch_lwip_threadsafe_background
+    hardware_adc
 )
 
 # Habilita I/O padrão via USB (ou UART)
