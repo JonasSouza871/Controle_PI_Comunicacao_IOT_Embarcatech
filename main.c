@@ -7,17 +7,14 @@
 #include "lwip/tcp.h"
 #include "lwip/netif.h"
 #include "hardware/adc.h"
-
-// Defina o SSID e a senha do seu Wi-Fi aqui
-#define WIFI_SSID "Jonas Souza"
-#define WIFI_PASSWORD "12345678"
-#define CYW43_LED_PIN CYW43_WL_GPIO_LED_PIN
-#define MAX_RETRIES 5
+#include "lib/Wifi/wifi_config.h"  // Inclui o arquivo de cabeçalho com as credenciais Wi-Fi
 
 // Definição dos pinos dos LEDs
 #define LED_BLUE_PIN 12
 #define LED_GREEN_PIN 11
 #define LED_RED_PIN 13
+#define CYW43_LED_PIN CYW43_WL_GPIO_LED_PIN
+#define MAX_RETRIES 5
 
 // Protótipos de função
 void blink_led(int blinks, int interval_ms);
@@ -153,11 +150,11 @@ void gpio_led_bitdog(void){
     gpio_init(LED_BLUE_PIN);
     gpio_set_dir(LED_BLUE_PIN, GPIO_OUT);
     gpio_put(LED_BLUE_PIN, false);
-    
+
     gpio_init(LED_GREEN_PIN);
     gpio_set_dir(LED_GREEN_PIN, GPIO_OUT);
     gpio_put(LED_GREEN_PIN, false);
-    
+
     gpio_init(LED_RED_PIN);
     gpio_set_dir(LED_RED_PIN, GPIO_OUT);
     gpio_put(LED_RED_PIN, false);
@@ -225,7 +222,7 @@ static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
 
     // Tratamento de request - Controle dos LEDs
     user_request(&request);
-    
+
     // Leitura da temperatura interna
     float temperature = temp_read();
 
@@ -269,7 +266,7 @@ static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
 
     //libera memória alocada dinamicamente
     free(request);
-    
+
     //libera um buffer de pacote (pbuf) que foi alocado anteriormente
     pbuf_free(p);
 
