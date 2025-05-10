@@ -35,6 +35,7 @@ pico_sdk_init()
 # Diretórios de include do projeto
 include_directories(${CMAKE_SOURCE_DIR}/lib)
 include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/lib/wifi)
 
 # Criando o executável
 add_executable(wifi_project
