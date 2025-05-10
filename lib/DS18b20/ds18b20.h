@@ -5,13 +5,11 @@
 #include <stdint.h>
 #include "pico/stdlib.h"
 
-/// Inicializa o barramento 1-Wire no pino especificado (ex: GP2)
-void ds18b20_init(uint pin);
+//Inicializa o sensor DS18B20 no pino especificado
+void ds18b20_init(uint pin); //Configura o barramento 1-Wire
+//Verifica a presença do sensor
+bool ds18b20_reset(void); //Retorna true se o sensor responder
+//Lê a temperatura do sensor
+float ds18b20_get_temperature(void); //Retorna temperatura em °C (resolução de 12 bits)
 
-/// Emite reset/presença. Retorna true se o sensor respondeu.
-bool ds18b20_reset(void);
-
-/// Dispara conversão e retorna temperatura em °C (resolução 12-bit).
-float ds18b20_get_temperature(void);
-
-#endif  // DS18B20_H
+#endif /* DS18B20_H */
