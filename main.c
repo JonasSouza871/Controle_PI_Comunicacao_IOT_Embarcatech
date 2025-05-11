@@ -10,7 +10,7 @@
 
 // pinos
 #define PIN_DS18B20   20
-#define PIN_VRY       26     // ADC2
+#define PIN_VRY       26     // ADC0 no GPIO26
 #define PIN_BTN_A     5
 #define I2C_SDA       14
 #define I2C_SCL       15
@@ -30,57 +30,74 @@ void Task_Sensor(void *pv) {
 
 // Task: ajusta setpoint com joystick e confirma com botão
 void Task_Input(void *pv) {
-    // --- iniciais do ADC e botão
+    // 1) inicializa ADC no canal 0 (GPIO26)
     adc_init();
     adc_gpio_init(PIN_VRY);
-    adc_select_input(2);
+    adc_select_input(0);  // <-- ADC0, pois PIN_VRY = 26
 
+    // 2) configura botão A com pull-up
     gpio_init(PIN_BTN_A);
     gpio_set_dir(PIN_BTN_A, GPIO_IN);
     gpio_pull_up(PIN_BTN_A);
 
-    bool confirmed = false;
-    bool last_btn  = false;
+    bool selecting = true;     // modo ajuste = true, modo monitor = false
+    bool last_btn   = false;   // para detectar borda
     char buf[32];
 
     while (1) {
-        if (!confirmed) {
-            // 1) ajuste com joystick
-            uint16_t raw = adc_read();
+        // lê valor bruto do ADC (0–4095)
+        uint16_t raw = adc_read();
+
+        // lê botão (0 = pressionado, 1 = solto)
+        bool btn_now = (gpio_get(PIN_BTN_A) == 0);
+
+        if (selecting) {
+            // joystick para ajustar setpoint
             if (raw > 3000 && setpoint < 30) {
                 setpoint++;
-                vTaskDelay(pdMS_TO_TICKS(200));  // evita ajuste muito rápido
-            } else if (raw < 1000 && setpoint > 10) {
+                vTaskDelay(pdMS_TO_TICKS(200));  // debounce simplificado
+            }
+            else if (raw < 1000 && setpoint > 10) {
                 setpoint--;
                 vTaskDelay(pdMS_TO_TICKS(200));
             }
 
-            // 2) checa confirmação (borda de subida)
-            bool btn_now = (gpio_get(PIN_BTN_A) == 0);
+            // detecta pressionar do botão A para confirmar
             if (btn_now && !last_btn) {
-                confirmed = true;
+                selecting = false;
             }
-            last_btn = btn_now;
 
-            // 3) desenha tela de seleção
+            // desenha tela de ajuste
             ssd1306_fill(&oled, false);
-            ssd1306_draw_string(&oled, "Ajuste Setpoint:", 0, 0, false);
+            ssd1306_draw_string(&oled, "Ajuste Setpoint:",  0,  0, false);
             snprintf(buf, sizeof(buf), "   %2d C", setpoint);
-            ssd1306_draw_string(&oled, buf, 0, 16, false);
-            ssd1306_draw_string(&oled, "[A] Confirma", 0, 32, false);
+            ssd1306_draw_string(&oled, buf,               0, 16, false);
+            ssd1306_draw_string(&oled, "[A] Confirma",      0, 32, false);
+            // (opcional) mostrar raw pra debug:
+            // snprintf(buf, sizeof(buf), "ADC: %4u", raw);
+            // ssd1306_draw_string(&oled, buf, 0, 48, false);
             ssd1306_send_data(&oled);
         }
         else {
-            // modo normal: mostra temperatura e setpoint
+            // depois de confirmar, monitora temperatura
+            // detecta pressionar do botão A para voltar ao ajuste
+            if (btn_now && !last_btn) {
+                selecting = true;
+            }
+
             ssd1306_fill(&oled, false);
             snprintf(buf, sizeof(buf), "Temp: %4.1f C", current_temp);
-            ssd1306_draw_string(&oled, buf, 0, 0, false);
-            snprintf(buf, sizeof(buf), "Set:  %3d C", setpoint);
+            ssd1306_draw_string(&oled, buf, 0,  0, false);
+            snprintf(buf, sizeof(buf), "Set:  %3d C",  setpoint);
             ssd1306_draw_string(&oled, buf, 0, 16, false);
+            snprintf(buf, sizeof(buf), "Erro: %4.1f C", setpoint - current_temp);
+            ssd1306_draw_string(&oled, buf, 0, 32, false);
+            ssd1306_draw_string(&oled, "Press A ajustar", 0, 48, false);
             ssd1306_send_data(&oled);
         }
 
-        vTaskDelay(pdMS_TO_TICKS(100));
+        last_btn = btn_now;
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
 }
 
@@ -103,6 +120,7 @@ int main() {
     // inicia scheduler
     vTaskStartScheduler();
 
+    // não deve chegar aqui
     while (1) tight_loop_contents();
     return 0;
 }
