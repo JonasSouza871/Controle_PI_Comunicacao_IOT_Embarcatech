@@ -1,34 +1,108 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include "pico/stdlib.h"
-//#include "pico/cyw43_arch.h" //Comentado: não necessário para leitura do sensor
-//#include "lwip/pbuf.h"       //Comentado: não necessário para leitura do sensor
-//#include "lwip/tcp.h"        //Comentado: não necessário para leitura do sensor
-//#include "lwip/netif.h"      //Comentado: não necessário para leitura do sensor
-//#include "lib/Wifi/wifi_config.h" //Comentado: não necessário para leitura do sensor
-#include "lib/DS18b20/ds18b20.h"         //Biblioteca para o sensor DS18B20
+#include "hardware/adc.h"
+#include "hardware/gpio.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "lib/DS18b20/ds18b20.h"
+#include "lib/Display_Bibliotecas/ssd1306.h"
 
-//Define o pino do sensor DS18B20
-#define DS18B20_PIN 2
+// pinos
+#define PIN_DS18B20   20
+#define PIN_VRY       26     // ADC2
+#define PIN_BTN_A     5
+#define I2C_SDA       14
+#define I2C_SCL       15
+
+static ssd1306_t oled;
+static float current_temp;
+static int setpoint = 20;
+
+// Task: lê temperatura a cada 1s
+void Task_Sensor(void *pv) {
+    ds18b20_init(PIN_DS18B20);
+    while (1) {
+        current_temp = ds18b20_get_temperature();
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+// Task: ajusta setpoint com joystick e confirma com botão
+void Task_Input(void *pv) {
+    // --- iniciais do ADC e botão
+    adc_init();
+    adc_gpio_init(PIN_VRY);
+    adc_select_input(2);
+
+    gpio_init(PIN_BTN_A);
+    gpio_set_dir(PIN_BTN_A, GPIO_IN);
+    gpio_pull_up(PIN_BTN_A);
+
+    bool confirmed = false;
+    bool last_btn  = false;
+    char buf[32];
+
+    while (1) {
+        if (!confirmed) {
+            // 1) ajuste com joystick
+            uint16_t raw = adc_read();
+            if (raw > 3000 && setpoint < 30) {
+                setpoint++;
+                vTaskDelay(pdMS_TO_TICKS(200));  // evita ajuste muito rápido
+            } else if (raw < 1000 && setpoint > 10) {
+                setpoint--;
+                vTaskDelay(pdMS_TO_TICKS(200));
+            }
+
+            // 2) checa confirmação (borda de subida)
+            bool btn_now = (gpio_get(PIN_BTN_A) == 0);
+            if (btn_now && !last_btn) {
+                confirmed = true;
+            }
+            last_btn = btn_now;
+
+            // 3) desenha tela de seleção
+            ssd1306_fill(&oled, false);
+            ssd1306_draw_string(&oled, "Ajuste Setpoint:", 0, 0, false);
+            snprintf(buf, sizeof(buf), "   %2d C", setpoint);
+            ssd1306_draw_string(&oled, buf, 0, 16, false);
+            ssd1306_draw_string(&oled, "[A] Confirma", 0, 32, false);
+            ssd1306_send_data(&oled);
+        }
+        else {
+            // modo normal: mostra temperatura e setpoint
+            ssd1306_fill(&oled, false);
+            snprintf(buf, sizeof(buf), "Temp: %4.1f C", current_temp);
+            ssd1306_draw_string(&oled, buf, 0, 0, false);
+            snprintf(buf, sizeof(buf), "Set:  %3d C", setpoint);
+            ssd1306_draw_string(&oled, buf, 0, 16, false);
+            ssd1306_send_data(&oled);
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+}
 
 int main() {
     stdio_init_all();
-    sleep_ms(3000); //Aguarda o console serial
 
-    printf("\n\n========== LEITURA DE TEMPERATURA DS18B20 ==========\n");
-    printf("Versão: 1.0 - Exibição no monitor serial\n");
-    printf("==================================================\n\n");
+    // inicializa I2C e OLED
+    i2c_init(i2c1, 400000);
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
+    ssd1306_init(&oled, 128, 64, false, 0x3C, i2c1);
+    ssd1306_config(&oled);
 
-    //Inicializa o sensor DS18B20
-    ds18b20_init(DS18B20_PIN);
+    // cria tasks
+    xTaskCreate(Task_Sensor, "Sensor", 256, NULL, 2, NULL);
+    xTaskCreate(Task_Input,  "Input",  512, NULL, 1, NULL);
 
-    //Loop principal: lê e exibe a temperatura
-    while (1) {
-        if (!ds18b20_reset()) {
-            printf("❌ Sensor DS18B20 não detectado!\n");
-        } else {
-            float temperature = ds18b20_get_temperature();
-            printf("Temperatura: %.2f °C\n", temperature);
-        }
-        sleep_ms(1000); //Aguarda 1 segundo antes da próxima leitura
-    }
+    // inicia scheduler
+    vTaskStartScheduler();
+
+    while (1) tight_loop_contents();
+    return 0;
 }
