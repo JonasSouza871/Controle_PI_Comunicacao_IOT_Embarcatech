@@ -5,7 +5,6 @@
 #include "hardware/pio.h"
 #include "generated/ws2812.pio.h"
 
-
 #define PINO_WS2812   7  //Pino GPIO para comunicação com WS2812
 #define NUM_LINHAS    5  //Número de linhas da matriz
 #define NUM_COLUNAS   5  //Número de colunas da matriz
@@ -25,6 +24,18 @@ extern const uint32_t COR_OFF;  //Desliga LEDs
 extern const uint8_t PAD_OK[5];  //Padrão "✓" para verde
 extern const uint8_t PAD_EXC[5];  //Padrão "!" para amarelo
 extern const uint8_t PAD_X[5];  //Padrão "X" para vermelho
+
+/* ---------- Padrões para dígitos 0-9 ---------- */
+extern const uint8_t PAD_0[5];
+extern const uint8_t PAD_1[5];
+extern const uint8_t PAD_2[5];
+extern const uint8_t PAD_3[5];
+extern const uint8_t PAD_4[5];
+extern const uint8_t PAD_5[5];
+extern const uint8_t PAD_6[5];
+extern const uint8_t PAD_7[5];
+extern const uint8_t PAD_8[5];
+extern const uint8_t PAD_9[5];
 
 /* ---------- API mínima ---------- */
 void inicializar_matriz_led(void);  //Inicializa PIO para WS2812

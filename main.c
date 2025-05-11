@@ -8,6 +8,7 @@
 #include "task.h"
 #include "lib/DS18b20/ds18b20.h"
 #include "lib/Display_Bibliotecas/ssd1306.h"
+#include "lib/Matriz_Bibliotecas/matriz_led.h"  // Inclui o cabeçalho da matriz de LED
 
 // pinos
 #define PIN_DS18B20   20
@@ -23,7 +24,7 @@ static int   setpoint = 20;
 // guarda o duty gerado pelo PI para exibir
 static volatile uint16_t pwm_duty = 0;
 
-// ===== Task_Sensor =====  
+// ===== Task_Sensor =====
 // Lê DS18B20 a cada 1s e atualiza current_temp
 void Task_Sensor(void *pv) {
     ds18b20_init(PIN_DS18B20);
@@ -33,7 +34,7 @@ void Task_Sensor(void *pv) {
     }
 }
 
-// ===== Task_Input =====  
+// ===== Task_Input =====
 // Ajusta setpoint via joystick → ADC0 e confirma/retorna com botão A
 void Task_Input(void *pv) {
     // ADC
@@ -91,6 +92,33 @@ void Task_Input(void *pv) {
             snprintf(buf, sizeof(buf), "PWM: %5u",       pwm_duty);
             ssd1306_draw_string(&oled, buf,               0, 48, false);
             ssd1306_send_data(&oled);
+
+            // Calcula o erro e arredonda para o inteiro mais próximo
+            float error = setpoint - current_temp;
+            int digit = (int)(error + 0.5);  // Arredonda para o inteiro mais próximo
+
+            // Garante que o dígito esteja entre 0 e 9
+            if (digit < 0) digit = 0;
+            if (digit > 9) digit = 9;
+
+            // Seleciona o padrão correspondente ao dígito
+            const uint8_t *digit_pattern;
+            switch (digit) {
+                case 0: digit_pattern = PAD_0; break;
+                case 1: digit_pattern = PAD_1; break;
+                case 2: digit_pattern = PAD_2; break;
+                case 3: digit_pattern = PAD_3; break;
+                case 4: digit_pattern = PAD_4; break;
+                case 5: digit_pattern = PAD_5; break;
+                case 6: digit_pattern = PAD_6; break;
+                case 7: digit_pattern = PAD_7; break;
+                case 8: digit_pattern = PAD_8; break;
+                case 9: digit_pattern = PAD_9; break;
+                default: digit_pattern = PAD_0; break;
+            }
+
+            // Desenha o padrão na matriz de LED
+            matriz_draw_pattern(digit_pattern, COR_VERDE);
         }
 
         last_btn = btn_now;
@@ -99,7 +127,7 @@ void Task_Input(void *pv) {
     }
 }
 
-// ===== Task_Control =====  
+// ===== Task_Control =====
 // Algoritmo PI rodando a cada 1s e gerando duty-cycle PWM
 void Task_Control(void *pv) {
     const float kp = 120.0f;
@@ -142,6 +170,9 @@ void Task_Control(void *pv) {
 
 int main() {
     stdio_init_all();
+
+    // Inicializa a matriz de LED
+    inicializar_matriz_led();
 
     // inicializa I2C e OLED
     i2c_init(i2c1, 400000);
