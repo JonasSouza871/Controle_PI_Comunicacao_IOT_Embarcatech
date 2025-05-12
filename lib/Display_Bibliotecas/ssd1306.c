@@ -194,7 +194,8 @@ void ssd1306_rect(ssd1306_t *ssd, uint8_t top, uint8_t left, uint8_t width, uint
 }
 
 // Desenha uma linha (Bresenham)
-void ssd1306_line(ssd1306_t *ssd, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, bool value) {
+void ssd1306_line(ssd1306_t *ssd, uint8_t x0, uint8_t y0,
+                  uint8_t x1, uint8_t y1, bool value) {
     int dx = abs(x1 - x0), dy = abs(y1 - y0);
     int sx = (x0 < x1) ? 1 : -1, sy = (y0 < y1) ? 1 : -1;
     int err = dx - dy;
