@@ -102,8 +102,24 @@ void Task_Input(void *pv) {
             if (digit < 0) digit = 0;
             if (digit > 9) digit = 9;
 
+            // Define a cor com base no valor do número
+            uint32_t cor_on;
+            switch (digit) {
+                case 0: cor_on = COR_BRANCO; break;
+                case 1: cor_on = COR_PRATA; break;
+                case 2: cor_on = COR_CINZA; break;
+                case 3: cor_on = COR_VIOLETA; break;
+                case 4: cor_on = COR_AZUL; break;
+                case 5: cor_on = COR_MARROM; break;
+                case 6: cor_on = COR_VERDE; break;
+                case 7: cor_on = COR_OURO; break;
+                case 8: cor_on = COR_LARANJA; break;
+                case 9: cor_on = COR_AMARELO; break;
+                default: cor_on = COR_OFF; break;
+            }
+
             // Usa a nova função para desenhar o dígito com os novos padrões
-            matriz_draw_number(digit, COR_VERDE);
+            matriz_draw_number(digit, cor_on);
         }
 
         last_btn = btn_now;
@@ -129,8 +145,9 @@ void Task_Control(void *pv) {
     pwm_set_enabled(slice, true);
 
     for (;;) {
-        // erro = setpoint – medido
-        float error = (float)setpoint - current_temp;
+        // Para um sistema de resfriamento:
+        // erro = medido - setpoint (invertido em relação ao aquecimento)
+        float error = current_temp - (float)setpoint;
         float P = kp * error;
         integral += ki * error * h;
 
