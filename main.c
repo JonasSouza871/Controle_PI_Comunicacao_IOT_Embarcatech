@@ -1,7 +1,3 @@
-// ============================================================================
-// main.c – Controle de temperatura + webserver para Raspberry Pi Pico W
-// ============================================================================
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
