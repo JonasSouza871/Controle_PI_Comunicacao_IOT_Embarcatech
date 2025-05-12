@@ -15,31 +15,23 @@
 #define GRB(r,g,b)   ( ((uint32_t)(g) << 16) | ((uint32_t)(r) << 8) | (b) )  //Converte RGB para formato GRB do WS2812
 
 /* ---------- Cores ---------- */
-extern const uint32_t COR_VERDE;  //Cor para estado verde
+extern const uint32_t COR_VERDE;    //Cor para estado verde
 extern const uint32_t COR_AMARELO;  //Cor para estado amarelo
-extern const uint32_t COR_VERMELHO;  //Cor para estado vermelho
-extern const uint32_t COR_OFF;  //Desliga LEDs
+extern const uint32_t COR_VERMELHO; //Cor para estado vermelho
+extern const uint32_t COR_OFF;      //Desliga LEDs
 
 /* ---------- Padrões 5 × 5 (✓, !, X) ---------- */
-extern const uint8_t PAD_OK[5];  //Padrão "✓" para verde
+extern const uint8_t PAD_OK[5];   //Padrão "✓" para verde
 extern const uint8_t PAD_EXC[5];  //Padrão "!" para amarelo
-extern const uint8_t PAD_X[5];  //Padrão "X" para vermelho
+extern const uint8_t PAD_X[5];    //Padrão "X" para vermelho
 
-/* ---------- Padrões para dígitos 0-9 ---------- */
-extern const uint8_t PAD_0[5];
-extern const uint8_t PAD_1[5];
-extern const uint8_t PAD_2[5];
-extern const uint8_t PAD_3[5];
-extern const uint8_t PAD_4[5];
-extern const uint8_t PAD_5[5];
-extern const uint8_t PAD_6[5];
-extern const uint8_t PAD_7[5];
-extern const uint8_t PAD_8[5];
-extern const uint8_t PAD_9[5];
+/* ---------- Padrões para dígitos 0-9 (novo formato) ---------- */
+extern const bool padrao_numeros[10][25];  // Array 2D com padrões dos números 0-9
 
-/* ---------- API mínima ---------- */
+/* ---------- API ---------- */
 void inicializar_matriz_led(void);  //Inicializa PIO para WS2812
 void matriz_draw_pattern(const uint8_t pad[5], uint32_t cor_on);  //Desenha padrão na matriz
+void matriz_draw_number(uint8_t numero, uint32_t cor_on);  //Desenha número (0-9) na matriz
 void matriz_clear(void);  //Limpa todos os LEDs
 
 #endif /* MATRIZ_LED_H */

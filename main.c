@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
 #include "pico/stdlib.h"
 #include "hardware/adc.h"
 #include "hardware/gpio.h"
@@ -8,7 +9,7 @@
 #include "task.h"
 #include "lib/DS18b20/ds18b20.h"
 #include "lib/Display_Bibliotecas/ssd1306.h"
-#include "lib/Matriz_Bibliotecas/matriz_led.h"  // Inclui o cabeçalho da matriz de LED
+#include "lib/Matriz_Bibliotecas/matriz_led.h" // Inclui o cabeçalho da matriz de LED
 
 // pinos
 #define PIN_DS18B20   20
@@ -94,31 +95,15 @@ void Task_Input(void *pv) {
             ssd1306_send_data(&oled);
 
             // Calcula o erro e arredonda para o inteiro mais próximo
-            float error = setpoint - current_temp;
+            float error = fabsf(setpoint - current_temp);  // Usa fabsf para obter o valor absoluto
             int digit = (int)(error + 0.5);  // Arredonda para o inteiro mais próximo
 
             // Garante que o dígito esteja entre 0 e 9
             if (digit < 0) digit = 0;
             if (digit > 9) digit = 9;
 
-            // Seleciona o padrão correspondente ao dígito
-            const uint8_t *digit_pattern;
-            switch (digit) {
-                case 0: digit_pattern = PAD_0; break;
-                case 1: digit_pattern = PAD_1; break;
-                case 2: digit_pattern = PAD_2; break;
-                case 3: digit_pattern = PAD_3; break;
-                case 4: digit_pattern = PAD_4; break;
-                case 5: digit_pattern = PAD_5; break;
-                case 6: digit_pattern = PAD_6; break;
-                case 7: digit_pattern = PAD_7; break;
-                case 8: digit_pattern = PAD_8; break;
-                case 9: digit_pattern = PAD_9; break;
-                default: digit_pattern = PAD_0; break;
-            }
-
-            // Desenha o padrão na matriz de LED
-            matriz_draw_pattern(digit_pattern, COR_VERDE);
+            // Usa a nova função para desenhar o dígito com os novos padrões
+            matriz_draw_number(digit, COR_VERDE);
         }
 
         last_btn = btn_now;

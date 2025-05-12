@@ -9,16 +9,89 @@ const uint8_t PAD_OK[5]  = {0b00001,0b00010,0b00100,0b11000,0b10000};  //Padrão
 const uint8_t PAD_EXC[5] = {0b00100,0b00100,0b00100,0b00000,0b00100};  //Padrão "!" para amarelo
 const uint8_t PAD_X[5]   = {0b10001,0b01010,0b00100,0b01010,0b10001};  //Padrão "X" para vermelho
 
-const uint8_t PAD_0[5] = {0b01110, 0b10001, 0b10001, 0b10001, 0b01110};
-const uint8_t PAD_1[5] = {0b00100, 0b01100, 0b00100, 0b00100, 0b01110};
-const uint8_t PAD_2[5] = {0b01110, 0b10001, 0b00110, 0b01000, 0b11111};
-const uint8_t PAD_3[5] = {0b11111, 0b00010, 0b01110, 0b00010, 0b11111};
-const uint8_t PAD_4[5] = {0b10001, 0b10001, 0b11111, 0b00001, 0b00001};
-const uint8_t PAD_5[5] = {0b11111, 0b10000, 0b11110, 0b00001, 0b11110};
-const uint8_t PAD_6[5] = {0b01110, 0b10000, 0b11110, 0b10001, 0b01110};
-const uint8_t PAD_7[5] = {0b11111, 0b00010, 0b00100, 0b01000, 0b01000};
-const uint8_t PAD_8[5] = {0b01110, 0b10001, 0b01110, 0b10001, 0b01110};
-const uint8_t PAD_9[5] = {0b01110, 0b10001, 0b01111, 0b00001, 0b01110};
+// Novos padrões de números (invertidos)
+const bool padrao_numeros[10][25] = {
+    // 0 (invertido)
+    {
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 1, 1, 1, 1
+    },
+    // 1 (invertido)
+    {
+        1, 1, 1, 1, 1,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 1, 1, 0, 0,
+        0, 0, 1, 0, 0
+    },
+    // 2 (invertido)
+    {
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 1,
+        0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1
+    },
+    // 3 (invertido)
+    {
+        1, 1, 1, 1, 1,
+        0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1,
+        0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1
+    },
+    // 4 (invertido)
+    {
+        1, 0, 0, 0, 0,
+        0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1
+    },
+    // 5 (invertido)
+    {
+        1, 1, 1, 1, 1,
+        0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 1
+    },
+    // 6 (invertido)
+    {
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 1,
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 1
+    },
+    // 7 (invertido)
+    {
+        1, 0, 0, 0, 0,
+        0, 0, 0, 0, 1,
+        1, 1, 1, 0, 0,
+        0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1
+    },
+    // 8 (invertido)
+    {
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 1,
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 1,
+        1, 1, 1, 1, 1
+    },
+    // 9 (invertido)
+    {
+        1, 1, 1, 1, 1,
+        0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 1,
+        1, 1, 1, 1, 1
+    }
+};
 
 static inline void ws2812_put(uint32_t grb) {  //Envia dados GRB para um LED
     pio_sm_put_blocking(pio0, 0, grb << 8u);  //Desloca 8 bits para alinhar protocolo WS2812
@@ -31,11 +104,24 @@ void inicializar_matriz_led(void) {  //CONFIGURA PIO PARA CONTROLAR WS2812
 }
 
 void matriz_draw_pattern(const uint8_t pad[5], uint32_t cor_on) {  //DESENHA PADRÃO NA MATRIZ
-    /* placa montada “de cabeça-para-baixo” → linha 4 primeiro */
+    /* placa montada "de cabeça-para-baixo" → linha 4 primeiro */
     for (int lin = 4; lin >= 0; --lin) {
         for (int col = 0; col < 5; ++col) {
             bool aceso = pad[lin] & (1 << (4 - col));  //Verifica bit do padrão
             ws2812_put(aceso ? cor_on : COR_OFF);  //Aplica cor ou desliga LED
+        }
+    }
+    sleep_us(60);  //Latência para atualizar matriz
+}
+
+void matriz_draw_number(uint8_t numero, uint32_t cor_on) {  //DESENHA UM NÚMERO NA MATRIZ
+    if (numero > 9) return;  // Validação para garantir número entre 0-9
+    
+    /* O formato da matriz boolean requer uma lógica diferente para desenhar */
+    for (int lin = 0; lin < 5; ++lin) {
+        for (int col = 0; col < 5; ++col) {
+            bool aceso = padrao_numeros[numero][lin * 5 + col];
+            ws2812_put(aceso ? cor_on : COR_OFF);
         }
     }
     sleep_us(60);  //Latência para atualizar matriz
