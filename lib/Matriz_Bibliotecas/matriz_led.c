@@ -1,9 +1,20 @@
 #include "matriz_led.h"
 
-const uint32_t COR_VERDE    = GRB(0,   150, 0);  //Verde com intensidade moderada
-const uint32_t COR_AMARELO  = GRB(255, 140, 0);  //Amarelo com tom quente
-const uint32_t COR_VERMELHO = GRB(190,   0, 0);  //Vermelho com brilho reduzido
-const uint32_t COR_OFF      = 0;                 //Desliga o LED
+const CorRGB PALETA_CORES[] = {
+    {"Preto", 0, 0, 0}, //cor preta não tem valor rgb
+    {"Marrom",   30,   10,    10},  
+    {"Vermelho", 190,   0,    0},  
+    {"Laranja",  255,  65,    0},  
+    {"Amarelo",  255, 140,    0},  
+    {"Verde",     0,  150,    0},
+    {"Azul",      0,    0,  200}, 
+    {"Violeta", 130,    0,  130},  
+    {"Cinza",   40,    35,  35},
+    {"Branco",  255,  255,  255},  // Branco verdadeiro
+    {"Prata",   192,  192,  192},
+    {"Ouro",    218,  165,   32},
+    {"---",      0,    0,    0}
+};
 
 const uint8_t PAD_OK[5]  = {0b00001,0b00010,0b00100,0b11000,0b10000};  //Padrão "✓" para verde
 const uint8_t PAD_EXC[5] = {0b00100,0b00100,0b00100,0b00000,0b00100};  //Padrão "!" para amarelo

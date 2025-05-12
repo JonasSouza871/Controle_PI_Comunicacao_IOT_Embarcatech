@@ -14,11 +14,22 @@
 /* ---------- Utilidades de cor ---------- */
 #define GRB(r,g,b)   ( ((uint32_t)(g) << 16) | ((uint32_t)(r) << 8) | (b) )  //Converte RGB para formato GRB do WS2812
 
-/* ---------- Cores ---------- */
-extern const uint32_t COR_VERDE;    //Cor para estado verde
-extern const uint32_t COR_AMARELO;  //Cor para estado amarelo
-extern const uint32_t COR_VERMELHO; //Cor para estado vermelho
-extern const uint32_t COR_OFF;      //Desliga LEDs
+/* ---------- Estrutura de cor RGB ---------- */
+typedef struct {
+    const char* nome;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+} CorRGB;
+
+/* ---------- Paleta de cores ---------- */
+extern const CorRGB PALETA_CORES[];
+
+/* ---------- Cores básicas para padrões ---------- */
+#define COR_VERDE    GRB(0, 150, 0)    //Cor para estado verde
+#define COR_AMARELO  GRB(255, 140, 0)  //Cor para estado amarelo
+#define COR_VERMELHO GRB(190, 0, 0)    //Cor para estado vermelho
+#define COR_OFF      GRB(0, 0, 0)      //Desliga LEDs
 
 /* ---------- Padrões 5 × 5 (✓, !, X) ---------- */
 extern const uint8_t PAD_OK[5];   //Padrão "✓" para verde
