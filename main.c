@@ -19,8 +19,8 @@
 #include "lwip/netif.h"
 
 // ----------------- CONFIGURAÇÃO WI-FI -----------------
-#define WIFI_SSID     "Nome_da_Rede"
-#define WIFI_PASSWORD "Senha_da_rede"
+#define WIFI_SSID     "Nome_rede_Wifi"
+#define WIFI_PASSWORD "Senha_rede_wifi"
 
 // ----------------- PINOS -----------------
 #define PIN_DS18B20   20    //Sensor de temperatura DS18B20
@@ -202,11 +202,10 @@ void Task_Buzzer(void *pv) {
 }
 
 //Gerencia exibição no OLED e matriz de LEDs
+//Gerencia exibição no OLED e matriz de LEDs
 void Task_Display(void *pv) {
     char buf[32]; //Buffer para strings
     uint32_t ultimo_alternar = to_ms_since_boot(get_absolute_time()); //Alternância de telas
-    uint32_t ultimo_pulso = to_ms_since_boot(get_absolute_time()); //Pulsação dos LEDs
-    bool led_ligado = true; //Estado do pulso
 
     while (true) {
         uint32_t agora = to_ms_since_boot(get_absolute_time());
@@ -214,14 +213,6 @@ void Task_Display(void *pv) {
         if (!selecionando && agora - ultimo_alternar > 5000) {
             exibir_tela_principal = !exibir_tela_principal;
             ultimo_alternar = agora;
-        }
-
-        //Controla pulsação baseada no duty_cycle_pwm
-        float duty_proporcao = duty_cycle_pwm / 65535.0f; //Proporção do PWM
-        uint32_t periodo_pulso = 200 + (800 * (1.0f - duty_proporcao)); //200ms a 1000ms
-        if (agora - ultimo_pulso > periodo_pulso) {
-            led_ligado = !led_ligado; //Alterna ligado/desligado
-            ultimo_pulso = agora;
         }
 
         ssd1306_fill(&oled, false); //Limpa OLED
@@ -264,19 +255,11 @@ void Task_Display(void *pv) {
                 default: cor = COR_OFF;    break;
             }
             if (erro > 9.6f) {
-                //Erro alto: padrão X vermelho com pulsação
-                if (led_ligado) {
-                    matriz_draw_pattern(PAD_X, COR_VERMELHO);
-                } else {
-                    matriz_draw_pattern(PAD_X, COR_OFF); //Desliga para pulsação
-                }
+                //Erro alto: padrão X vermelho
+                matriz_draw_pattern(PAD_X, COR_VERMELHO);
             } else {
-                //Exibe dígito do erro com pulsação
-                if (led_ligado) {
-                    matriz_draw_number(digito, cor);
-                } else {
-                    matriz_draw_number(digito, COR_OFF); //Desliga para pulsação
-                }
+                //Exibe dígito do erro
+                matriz_draw_number(digito, cor);
             }
         } else {
             //Tela de exibição do RPM
