@@ -19,8 +19,8 @@
 #include "lwip/netif.h"
 
 // ----------------- CONFIGURAÇÃO WI-FI -----------------
-#define WIFI_SSID     "Jonas Souza"
-#define WIFI_PASSWORD "12345678"
+#define WIFI_SSID     "Nome_da_Rede"
+#define WIFI_PASSWORD "Senha"
 
 // ----------------- PINOS -----------------
 #define PIN_DS18B20   20    //Sensor de temperatura DS18B20
