@@ -20,7 +20,7 @@
 
 // ----------------- CONFIGURAÇÃO WI-FI -----------------
 #define WIFI_SSID     "Nome_da_Rede"
-#define WIFI_PASSWORD "Senha"
+#define WIFI_PASSWORD "Senha_da_rede"
 
 // ----------------- PINOS -----------------
 #define PIN_DS18B20   20    //Sensor de temperatura DS18B20
