@@ -1,4 +1,4 @@
-# 🚀 Controle-Pico W – Sistema de Monitoramento & Controle de Temperatura 🚀
+# 🚀 ThermoGuardian – Sistema de Monitoramento & Controle de Temperatura 🚀
 > *“Monitore, controle e visualize em tempo-real a temperatura com um Raspberry Pi Pico W, display OLED e interface web.”*
 
 ## 📝 Descrição Breve
